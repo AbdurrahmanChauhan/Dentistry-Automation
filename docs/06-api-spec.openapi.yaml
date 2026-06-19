@@ -1,0 +1,222 @@
+openapi: 3.0.3
+info:
+  title: Dentistry Automation API
+  description: DA API v1 — RCM workflow automation for dental practices and DSOs
+  version: 1.0.0
+  contact:
+    email: hello@dentistryautomation.com
+servers:
+  - url: http://localhost:5000
+    description: Local development
+security:
+  - ApiKeyAuth: []
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-Api-Key
+paths:
+  /v1/health:
+    get:
+      summary: Health check
+      security: []
+      responses:
+        '200':
+          description: Service health status
+  /v1/eligibility/check:
+    post:
+      summary: Trigger eligibility verification (270/271)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [locationId, patientId]
+              properties:
+                locationId: { type: string, format: uuid }
+                patientId: { type: string, format: uuid }
+                coverageId: { type: string, format: uuid }
+                appointmentId: { type: string, format: uuid }
+      responses:
+        '202': { description: Eligibility check accepted }
+  /v1/eligibility/{id}:
+    get:
+      summary: Get eligibility check result
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200': { description: Eligibility check detail }
+  /v1/eligibility:
+    get:
+      summary: List eligibility checks
+      parameters:
+        - name: locationId
+          in: query
+          schema: { type: string, format: uuid }
+      responses:
+        '200': { description: List of checks }
+  /v1/claims:
+    get:
+      summary: List claims
+      parameters:
+        - name: status
+          in: query
+          schema: { type: string }
+      responses:
+        '200': { description: Claim list }
+  /v1/claims/ingest:
+    post:
+      summary: Ingest claims from DentalBridge (PMS)
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                locationId: { type: string, format: uuid }
+      responses:
+        '200': { description: Ingested claim }
+  /v1/claims/{id}:
+    get:
+      summary: Get claim detail with status history
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200': { description: Claim detail }
+  /v1/claims/{id}/submit:
+    post:
+      summary: Scrub and submit claim (837D)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200': { description: Submitted claim }
+  /v1/remittances:
+    get:
+      summary: List ERA/835 remittances
+      responses:
+        '200': { description: Remittance list }
+  /v1/remittances/poll:
+    post:
+      summary: Poll clearinghouse for new 835 remittances
+      responses:
+        '200': { description: Ingested remittances }
+  /v1/remittances/upload-835:
+    post:
+      summary: Upload raw 835 (JSON or X12)
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                raw835: { type: string }
+      responses:
+        '202': { description: 835 processed }
+  /v1/remittances/{id}/post:
+    post:
+      summary: Auto-post remittance lines above confidence threshold
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200': { description: Posting result }
+  /v1/remittances/lines/{lineId}/post:
+    post:
+      summary: Post single remittance line
+      parameters:
+        - name: lineId
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+        - name: force
+          in: query
+          schema: { type: boolean }
+      responses:
+        '200': { description: Posting attempt }
+  /v1/work-items:
+    get:
+      summary: List exception/denial work items
+      parameters:
+        - name: status
+          in: query
+          schema: { type: string }
+        - name: type
+          in: query
+          schema: { type: string }
+      responses:
+        '200': { description: Work item list }
+  /v1/work-items/{id}:
+    get:
+      summary: Get work item detail
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200': { description: Work item }
+    patch:
+      summary: Update work item (assign, resolve)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status: { type: string }
+                assignedTo: { type: string }
+                resolutionNotes: { type: string }
+      responses:
+        '200': { description: Updated work item }
+  /v1/work-items/{id}/ai-summary:
+    post:
+      summary: Generate AI denial summary and suggested action
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200': { description: Enriched work item }
+  /v1/locations:
+    get:
+      summary: List organization locations
+      responses:
+        '200': { description: Location list }
+  /v1/locations/{id}/kpis:
+    get:
+      summary: Location RCM KPIs
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200': { description: KPI metrics }
+  /v1/patients:
+    get:
+      summary: List patients
+      parameters:
+        - name: locationId
+          in: query
+          schema: { type: string, format: uuid }
+      responses:
+        '200': { description: Patient list }

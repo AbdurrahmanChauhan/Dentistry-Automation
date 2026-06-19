@@ -1,0 +1,40 @@
+{
+  "eraReference": "ERA-SAMPLE-001",
+  "payerName": "Delta Dental",
+  "payerId": "DD001",
+  "paymentDate": "2026-06-01",
+  "totalPaymentAmount": 350.00,
+  "traceNumber": "TRN-123456",
+  "lines": [
+    {
+      "payerClaimId": "PAY-CLM-001",
+      "patientControlNumber": "PAT-001",
+      "procedureCode": "D0120",
+      "dateOfService": "2026-05-15",
+      "billedAmount": 75.00,
+      "paidAmount": 60.00,
+      "adjustmentAmount": 15.00,
+      "carcCode": "CO-45"
+    },
+    {
+      "payerClaimId": "PAY-CLM-001",
+      "patientControlNumber": "PAT-001",
+      "procedureCode": "D1110",
+      "dateOfService": "2026-05-15",
+      "billedAmount": 125.00,
+      "paidAmount": 100.00,
+      "adjustmentAmount": 25.00,
+      "carcCode": "CO-45"
+    },
+    {
+      "payerClaimId": "PAY-CLM-001",
+      "patientControlNumber": "PAT-001",
+      "procedureCode": "D2391",
+      "dateOfService": "2026-05-15",
+      "billedAmount": 250.00,
+      "paidAmount": 190.00,
+      "adjustmentAmount": 60.00,
+      "carcCode": "CO-45"
+    }
+  ]
+}

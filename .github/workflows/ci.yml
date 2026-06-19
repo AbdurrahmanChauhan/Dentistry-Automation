@@ -1,0 +1,59 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+
+jobs:
+  dotnet:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+      - name: Restore
+        run: dotnet restore src/DentistryAutomation.sln
+      - name: Build
+        run: dotnet build src/DentistryAutomation.sln --no-restore -c Release
+      - name: Test
+        run: dotnet test src/DentistryAutomation.sln --no-build -c Release --verbosity normal
+
+  python:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install dependencies
+        run: pip install -r src/ai-workers/requirements.txt
+      - name: Test AI workers
+        run: pytest src/ai-workers/tests/ -v
+
+  frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Install and build
+        working-directory: src/platform-web
+        run: |
+          npm ci
+          npm run build
+
+  docker:
+    runs-on: ubuntu-latest
+    needs: [dotnet, python, frontend]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build API image
+        run: docker build -f docker/Dockerfile.api -t da-api .
+      - name: Build AI worker image
+        run: docker build -f docker/Dockerfile.ai-worker -t da-ai-worker .
+      - name: Build Web image
+        run: docker build -f docker/Dockerfile.web -t da-web .

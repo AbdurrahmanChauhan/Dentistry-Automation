@@ -1,0 +1,37 @@
+# Build
+**/bin/
+**/obj/
+**/dist/
+**/node_modules/
+**/.venv/
+**/__pycache__/
+*.pyc
+*.pyo
+
+# IDE
+.vs/
+.vscode/
+*.user
+*.suo
+
+# Environment
+.env
+.env.local
+*.secrets.json
+
+# Logs
+logs/
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Test
+coverage/
+TestResults/
+htmlcov/
+.pytest_cache/
+
+# Docker
+docker/data/
