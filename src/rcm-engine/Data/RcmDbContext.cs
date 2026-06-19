@@ -48,8 +48,10 @@ public class RcmDbContext : DbContext
         });
 
         modelBuilder.Entity<EligibilityCheck>(e =>
+        {
             e.HasOne(x => x.BenefitSnapshot).WithOne(x => x!.EligibilityCheck)
-                .HasForeignKey<BenefitSnapshot>(x => x.EligibilityCheckId));
+                .HasForeignKey<BenefitSnapshot>(x => x.EligibilityCheckId);
+        });
 
         modelBuilder.Entity<Claim>(e =>
         {
@@ -58,25 +60,39 @@ public class RcmDbContext : DbContext
         });
 
         modelBuilder.Entity<ClaimLine>(e =>
-            e.HasOne(x => x.Claim).WithMany(x => x.Lines).HasForeignKey(x => x.ClaimId));
+        {
+            e.HasOne(x => x.Claim).WithMany(x => x.Lines).HasForeignKey(x => x.ClaimId);
+        });
 
         modelBuilder.Entity<RemittanceLine>(e =>
+        {
             e.HasIndex(x => new { x.RemittanceId, x.LineNumber });
+        });
 
         modelBuilder.Entity<WorkItem>(e =>
+        {
             e.HasIndex(x => new { x.OrganizationId, x.Status, x.Priority, x.CreatedAt });
+        });
 
         modelBuilder.Entity<IntegrationJob>(e =>
+        {
             e.HasIndex(x => new { x.Status, x.JobType });
             e.HasIndex(x => x.IdempotencyKey).IsUnique().HasFilter("[IdempotencyKey] IS NOT NULL");
+        });
 
         modelBuilder.Entity<AuditEvent>(e =>
+        {
             e.HasIndex(x => new { x.OrganizationId, x.Timestamp });
+        });
 
         modelBuilder.Entity<ApiKey>(e =>
-            e.HasIndex(x => x.KeyHash).IsUnique());
+        {
+            e.HasIndex(x => x.KeyHash).IsUnique();
+        });
 
         modelBuilder.Entity<ApiUsageLog>(e =>
+        {
             e.HasIndex(x => new { x.OrganizationId, x.Timestamp });
+        });
     }
 }

@@ -508,8 +508,10 @@ The visual architecture deck is published automatically when you push to `master
 **One-time setup** (repo owner only):
 
 1. Open https://github.com/AbdurrahmanChauhan/Dentistry-Automation/settings/pages
-2. Under **Build and deployment → Source**, select **GitHub Actions**
-3. Push to `master` (or run the **Deploy GitHub Pages** workflow manually)
+2. Under **Build and deployment → Source**, select **GitHub Actions** (not "Deploy from a branch")
+3. Save, then push to `master` or run **Actions → Deploy GitHub Pages → Run workflow**
+
+If deployment still fails, confirm **Settings → Actions → General → Workflow permissions** is set to **Read and write permissions**.
 
 **Live URLs** (after first successful deploy):
 
