@@ -503,24 +503,25 @@ Release process and runbooks: [`docs/13-deployment-plan.md`](docs/13-deployment-
 
 ### GitHub Pages (architecture presentation)
 
-The visual architecture deck is published automatically when you push to `master`.
+The visual architecture deck is published to the **`gh-pages`** branch on every push to `master`.
 
 **One-time setup** (repo owner only):
 
 1. Open https://github.com/AbdurrahmanChauhan/Dentistry-Automation/settings/pages
-2. Under **Build and deployment → Source**, select **GitHub Actions** (not "Deploy from a branch")
-3. Save, then push to `master` or run **Actions → Deploy GitHub Pages → Run workflow**
+2. Under **Build and deployment → Source**, select **Deploy from a branch**
+3. Branch: **`gh-pages`** · Folder: **`/ (root)`** · Save
+4. Push to `master` (or run **Actions → Deploy GitHub Pages → Run workflow**)
 
-If deployment still fails, confirm **Settings → Actions → General → Workflow permissions** is set to **Read and write permissions**.
+Ensure **Settings → Actions → General → Workflow permissions** is **Read and write permissions**.
 
-**Live URLs** (after first successful deploy):
+**Live URLs** (after first successful deploy — may take 1–2 minutes):
 
 | URL | Purpose |
 |-----|---------|
 | https://abdurrahmanchauhan.github.io/Dentistry-Automation/ | Homepage (`index.html` = architecture deck) |
 | https://abdurrahmanchauhan.github.io/Dentistry-Automation/architecture.html | Same deck (alternate path) |
 
-The workflow copies `architecture.html` to both paths on each deploy. No build step required — the file is self-contained HTML/CSS.
+The workflow copies `architecture.html` to both paths. No build step required — self-contained HTML/CSS.
 
 ---
 
