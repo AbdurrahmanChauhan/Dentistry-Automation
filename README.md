@@ -5,7 +5,8 @@
 Production-capable MVP for **dental Revenue Cycle Management (RCM) automation**. Orchestrates eligibility verification, claims lifecycle, ERA/835 payment posting, denial management, and human-in-the-loop exception queues — built on mock-first integrations that swap to live DentalBridge, clearinghouse, and PMS write-back adapters without domain changes.
 
 > **Repository:** https://github.com/AbdurrahmanChauhan/Dentistry-Automation  
-> **Architecture presentation:** Open [`architecture.html`](architecture.html) in a browser for a visual, founder-ready walkthrough.
+> **Architecture presentation (local):** [`architecture.html`](architecture.html)  
+> **Architecture presentation (live):** https://abdurrahmanchauhan.github.io/Dentistry-Automation/ *(GitHub Pages — enable once, see below)*
 
 ---
 
@@ -496,8 +497,28 @@ npm run dev
 | **Local** | `docker-compose.yml` | SQL Server, Redis, Azurite, API, AI, Web |
 | **Azure** | `infra/bicep/main.bicep` | App Service, Azure SQL S0, Storage, App Insights |
 | **CI** | `.github/workflows/ci.yml` | dotnet test, pytest, npm build, Docker images |
+| **Architecture site** | `.github/workflows/github-pages.yml` | Publishes `architecture.html` to GitHub Pages |
 
 Release process and runbooks: [`docs/13-deployment-plan.md`](docs/13-deployment-plan.md)
+
+### GitHub Pages (architecture presentation)
+
+The visual architecture deck is published automatically when you push to `master`.
+
+**One-time setup** (repo owner only):
+
+1. Open https://github.com/AbdurrahmanChauhan/Dentistry-Automation/settings/pages
+2. Under **Build and deployment → Source**, select **GitHub Actions**
+3. Push to `master` (or run the **Deploy GitHub Pages** workflow manually)
+
+**Live URLs** (after first successful deploy):
+
+| URL | Purpose |
+|-----|---------|
+| https://abdurrahmanchauhan.github.io/Dentistry-Automation/ | Homepage (`index.html` = architecture deck) |
+| https://abdurrahmanchauhan.github.io/Dentistry-Automation/architecture.html | Same deck (alternate path) |
+
+The workflow copies `architecture.html` to both paths on each deploy. No build step required — the file is self-contained HTML/CSS.
 
 ---
 
