@@ -1,0 +1,995 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dentistry Automation Platform — Architecture</title>
+  <style>
+    :root {
+      --bg: #0b1120;
+      --surface: #131c2e;
+      --surface-2: #1a2540;
+      --border: #2a3a5c;
+      --text: #e8edf4;
+      --muted: #8b9cb3;
+      --accent: #3b82f6;
+      --accent-soft: rgba(59, 130, 246, 0.15);
+      --green: #22c55e;
+      --green-soft: rgba(34, 197, 94, 0.15);
+      --amber: #f59e0b;
+      --amber-soft: rgba(245, 158, 11, 0.15);
+      --purple: #a855f7;
+      --purple-soft: rgba(168, 85, 247, 0.15);
+      --red: #ef4444;
+      --cyan: #06b6d4;
+      --radius: 10px;
+      --font: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: var(--font);
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      font-size: 15px;
+    }
+
+    /* Layout */
+    .layout { display: flex; min-height: 100vh; }
+    nav {
+      width: 260px;
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      padding: 1.5rem 1rem;
+      position: fixed;
+      height: 100vh;
+      overflow-y: auto;
+      z-index: 100;
+    }
+    nav .logo {
+      display: flex; align-items: center; gap: 0.75rem;
+      margin-bottom: 1.5rem; padding-bottom: 1rem;
+      border-bottom: 1px solid var(--border);
+    }
+    nav .logo-icon {
+      width: 42px; height: 42px; background: var(--accent);
+      border-radius: var(--radius); display: flex;
+      align-items: center; justify-content: center;
+      font-weight: 800; font-size: 0.85rem;
+    }
+    nav .logo small { display: block; color: var(--muted); font-size: 0.72rem; }
+    nav a {
+      display: block; color: var(--muted); text-decoration: none;
+      padding: 0.45rem 0.65rem; border-radius: 6px; font-size: 0.82rem;
+      margin-bottom: 2px;
+    }
+    nav a:hover { background: var(--surface-2); color: var(--text); }
+    nav .nav-group { font-size: 0.68rem; text-transform: uppercase;
+      letter-spacing: 0.08em; color: var(--muted); margin: 1rem 0 0.4rem 0.65rem; }
+
+    main { margin-left: 260px; flex: 1; padding: 2rem 2.5rem 4rem; max-width: 1200px; }
+
+    /* Typography */
+    h1 { font-size: 2rem; font-weight: 700; letter-spacing: -0.02em; }
+    h2 { font-size: 1.45rem; font-weight: 600; margin: 2.5rem 0 1rem; padding-top: 1rem;
+      border-top: 1px solid var(--border); }
+    h2:first-of-type { border-top: none; margin-top: 0; padding-top: 0; }
+    h3 { font-size: 1.05rem; font-weight: 600; margin: 1.25rem 0 0.6rem; color: var(--accent); }
+    h4 { font-size: 0.9rem; font-weight: 600; margin: 0.75rem 0 0.4rem; }
+    p { margin-bottom: 0.75rem; color: var(--muted); }
+    p strong, li strong { color: var(--text); }
+    ul, ol { margin: 0.5rem 0 1rem 1.25rem; color: var(--muted); }
+    li { margin-bottom: 0.3rem; }
+    code {
+      background: var(--surface-2); padding: 0.15rem 0.4rem;
+      border-radius: 4px; font-size: 0.82rem; color: var(--cyan);
+    }
+
+    /* Hero */
+    .hero { margin-bottom: 2rem; }
+    .hero .subtitle { font-size: 1.05rem; color: var(--muted); max-width: 720px; }
+    .badges { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 1rem; }
+    .badge {
+      display: inline-block; padding: 0.25rem 0.65rem; border-radius: 999px;
+      font-size: 0.75rem; font-weight: 500;
+    }
+    .badge-blue { background: var(--accent-soft); color: var(--accent); }
+    .badge-green { background: var(--green-soft); color: var(--green); }
+    .badge-amber { background: var(--amber-soft); color: var(--amber); }
+    .badge-purple { background: var(--purple-soft); color: var(--purple); }
+
+    /* Cards */
+    .card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 1.25rem; margin-bottom: 1rem;
+    }
+    .card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1rem; }
+    .card h4 { color: var(--text); margin-top: 0; }
+
+    /* Tables */
+    table { width: 100%; border-collapse: collapse; font-size: 0.85rem; margin: 0.75rem 0; }
+    th, td { text-align: left; padding: 0.6rem 0.75rem; border-bottom: 1px solid var(--border); }
+    th { color: var(--muted); font-weight: 500; font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.04em; }
+    td { color: var(--text); }
+    tr:hover td { background: var(--surface-2); }
+
+    /* Architecture diagram */
+    .arch-diagram {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 1.5rem; overflow-x: auto;
+      margin: 1rem 0;
+    }
+    .arch-layer { margin-bottom: 1rem; }
+    .arch-layer-label {
+      font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.1em;
+      color: var(--muted); margin-bottom: 0.5rem; font-weight: 600;
+    }
+    .arch-row {
+      display: flex; flex-wrap: wrap; gap: 0.6rem; align-items: stretch;
+      justify-content: center;
+    }
+    .arch-box {
+      border: 2px solid var(--border); border-radius: var(--radius);
+      padding: 0.75rem 1rem; min-width: 140px; text-align: center;
+      position: relative; flex: 1; max-width: 200px;
+    }
+    .arch-box .title { font-weight: 600; font-size: 0.85rem; margin-bottom: 0.2rem; }
+    .arch-box .tech { font-size: 0.72rem; color: var(--muted); }
+    .arch-box .path { font-size: 0.65rem; color: var(--cyan); margin-top: 0.3rem; word-break: break-all; }
+    .arch-box.client { border-color: var(--purple); background: var(--purple-soft); }
+    .arch-box.api { border-color: var(--accent); background: var(--accent-soft); }
+    .arch-box.engine { border-color: var(--green); background: var(--green-soft); }
+    .arch-box.integration { border-color: var(--amber); background: var(--amber-soft); }
+    .arch-box.data { border-color: var(--cyan); background: rgba(6,182,212,0.12); }
+    .arch-box.external { border-color: #64748b; background: rgba(100,116,139,0.12); border-style: dashed; }
+    .arch-arrow {
+      text-align: center; color: var(--muted); font-size: 1.2rem;
+      padding: 0.25rem 0; line-height: 1;
+    }
+    .arch-arrow span { font-size: 0.7rem; display: block; margin-top: 0.15rem; }
+
+    /* Flow diagram */
+    .flow {
+      display: flex; flex-wrap: wrap; align-items: center; gap: 0.4rem;
+      margin: 1rem 0; justify-content: center;
+    }
+    .flow-step {
+      background: var(--surface-2); border: 1px solid var(--border);
+      border-radius: 8px; padding: 0.5rem 0.75rem; font-size: 0.78rem;
+      text-align: center; min-width: 100px;
+    }
+    .flow-step.highlight { border-color: var(--accent); background: var(--accent-soft); }
+    .flow-step.ai { border-color: var(--purple); background: var(--purple-soft); }
+    .flow-step.human { border-color: var(--amber); background: var(--amber-soft); }
+    .flow-arrow { color: var(--muted); font-size: 1rem; }
+
+    /* Comparison */
+    .compare { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+    @media (max-width: 768px) { .compare { grid-template-columns: 1fr; } }
+    .compare-before { border-left: 3px solid var(--red); }
+    .compare-after { border-left: 3px solid var(--green); }
+
+    /* Entity diagram */
+    .entity-grid {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+      gap: 0.5rem; margin: 0.75rem 0;
+    }
+    .entity {
+      background: var(--surface-2); border: 1px solid var(--border);
+      border-radius: 6px; padding: 0.5rem 0.65rem; font-size: 0.78rem;
+    }
+    .entity strong { display: block; color: var(--accent); font-size: 0.82rem; }
+
+    /* Callout */
+    .callout {
+      border-left: 4px solid var(--accent); background: var(--accent-soft);
+      padding: 1rem 1.25rem; border-radius: 0 var(--radius) var(--radius) 0;
+      margin: 1rem 0;
+    }
+    .callout.green { border-color: var(--green); background: var(--green-soft); }
+    .callout.amber { border-color: var(--amber); background: var(--amber-soft); }
+
+    /* Print */
+    @media print {
+      nav { display: none; }
+      main { margin-left: 0; max-width: 100%; }
+      body { background: white; color: black; }
+      .card, .arch-diagram { break-inside: avoid; }
+    }
+    @media (max-width: 900px) {
+      nav { display: none; }
+      main { margin-left: 0; padding: 1.25rem; }
+    }
+  </style>
+</head>
+<body>
+<div class="layout">
+  <nav>
+    <div class="logo">
+      <div class="logo-icon">DA</div>
+      <div>
+        <strong>Dentistry Automation</strong>
+        <small>Architecture Presentation</small>
+      </div>
+    </div>
+    <div class="nav-group">Overview</div>
+    <a href="#executive">Executive Summary</a>
+    <a href="#strategy">Strategic Position</a>
+    <a href="#problem">Problem → Solution</a>
+    <div class="nav-group">Architecture</div>
+    <a href="#system">System Diagram</a>
+    <a href="#lifecycle">RCM Lifecycle</a>
+    <a href="#components">Components</a>
+    <a href="#workflows">Workflows</a>
+    <a href="#data">Data Model</a>
+    <a href="#api">DA API v1</a>
+    <div class="nav-group">Integrations & AI</div>
+    <a href="#integrations">Integration Ports</a>
+    <a href="#ai">AI + Human-in-Loop</a>
+    <div class="nav-group">Operations</div>
+    <a href="#security">Security & HIPAA</a>
+    <a href="#observability">Observability</a>
+    <a href="#deployment">Deployment</a>
+    <a href="#demo">Demo Walkthrough</a>
+    <a href="#roadmap">Roadmap</a>
+    <a href="#decisions">Key Decisions</a>
+  </nav>
+
+  <main>
+    <section class="hero" id="top">
+      <h1>Dentistry Automation Platform</h1>
+      <p class="subtitle">
+        Production-capable MVP architecture for dental Revenue Cycle Management (RCM).
+        This document explains the full implementation — how eligibility, claims, ERA posting,
+        denials, and exception queues are orchestrated on top of Dentistry Automation's existing
+        DentalBridge PMS layer.
+      </p>
+      <div class="badges">
+        <span class="badge badge-blue">.NET 8 + TypeScript + Python</span>
+        <span class="badge badge-green">Modular Monolith</span>
+        <span class="badge badge-amber">Mock-First Integrations</span>
+        <span class="badge badge-purple">AI + Rules Hybrid</span>
+      </div>
+    </section>
+
+    <!-- EXECUTIVE -->
+    <section id="executive">
+      <h2>1. Executive Summary</h2>
+      <div class="callout green">
+        <strong>What this MVP adds to Dentistry Automation's existing products:</strong>
+        Dentistry Automation already ships <strong>DentalBridge API</strong> (PMS-agnostic read)
+        and <strong>RCM write-back endpoints</strong> (<code>/rcm/eligibility-verification</code>,
+        <code>/rcm/patientpaymentswriteback</code>). This platform adds the missing
+        <strong>workflow orchestration layer</strong> — stateful RCM pipelines, clearinghouse/EDI routing,
+        acknowledgment monitoring, AI-assisted exception handling, and a partner-facing <strong>DA API v1</strong>.
+      </div>
+      <div class="card-grid">
+        <div class="card">
+          <h4>Business Goal</h4>
+          <p>Reduce manual RCM work, accelerate cash flow, and let DSOs scale without proportional hiring — sitting directly in the <strong>money path</strong>.</p>
+        </div>
+        <div class="card">
+          <h4>Architecture Style</h4>
+          <p><strong>Modular monolith</strong> (.NET 8) + background workers + Python AI sidecar. Fast iteration for a small team; correctness-critical payment posting stays in deterministic .NET code.</p>
+        </div>
+        <div class="card">
+          <h4>MVP Wedge</h4>
+          <p><strong>ERA/835 posting + eligibility orchestration</strong> — highest cash impact, demonstrates AI (EOB extraction) + rules (posting match) hybrid, closes loop with existing PMS write-back.</p>
+        </div>
+        <div class="card">
+          <h4>Integration Strategy</h4>
+          <p><strong>Mock-first adapter ports</strong> — full E2E demo today; swap to live Stedi/DentalBridge/production write-back without changing domain logic.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- STRATEGY -->
+    <section id="strategy">
+      <h2>2. Strategic Position vs. Market</h2>
+      <table>
+        <thead>
+          <tr><th>Competitor</th><th>Strength</th><th>Gap</th><th>DA Opportunity</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Zuub / Dental Intelligence</td><td>Deep verification</td><td>Weak ERA→PMS loop</td><td>End-to-end workflow closure</td></tr>
+          <tr><td>Zentist</td><td>ERA AI, denial triage</td><td>Limited PMS posting breadth</td><td>DentalBridge write-back breadth</td></tr>
+          <tr><td>dentalrobot</td><td>12+ PMS write-back</td><td>Less clearinghouse-native</td><td>Ack monitoring + CH routing</td></tr>
+          <tr><td>eAssist / DCS</td><td>Human scale</td><td>Low software margin</td><td>Software automation + HITL queues</td></tr>
+        </tbody>
+      </table>
+      <div class="callout">
+        <strong>Core thesis:</strong> Verification is table stakes. Differentiation is
+        <strong>loop closure</strong> (eligibility → submit → ack → ERA → post → denial → resubmit)
+        with <strong>boring reliability</strong> (retries, audit, idempotency) and
+        <strong>DSO-grade multi-tenant analytics</strong>.
+      </div>
+    </section>
+
+    <!-- PROBLEM SOLUTION -->
+    <section id="problem">
+      <h2>3. Problem → Solution (Hybrid Automation Model)</h2>
+      <div class="compare">
+        <div class="card compare-before">
+          <h4>Current State — High Volume, People Dependent</h4>
+          <ul>
+            <li>Manual workflows: claim submission, payment posting, claims monitoring, QA/rework, scrubbing, EOB review, secondary follow-up</li>
+            <li><strong>Data silos:</strong> PMS, Clearinghouse, Payer Portals, AR Reports — no canonical model</li>
+            <li>Silent 999/277CA failures — claims never adjudicate</li>
+            <li>ERA lines posted manually, line-by-line</li>
+            <li>Denial patterns invisible across DSO locations</li>
+          </ul>
+        </div>
+        <div class="card compare-after">
+          <h4>Future State — RCM Hybrid Automation Platform (This MVP)</h4>
+          <ul>
+            <li><strong>Clinician team</strong> triggers eligibility checks pre-visit</li>
+            <li><strong>Central platform</strong> integrates PMS (DentalBridge), Clearinghouse, Payer data</li>
+            <li>Rules engine handles 80%+ volume automatically</li>
+            <li><strong>RCM team</strong> (internal + outsourced) handles exceptions only via work queues</li>
+            <li>AI assists extraction and triage — never auto-moves money below confidence threshold</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- SYSTEM DIAGRAM -->
+    <section id="system">
+      <h2>4. System Architecture — Full Stack</h2>
+      <p>Five deployable components in a monorepo, sharing a single domain model. External systems connect through swappable adapter ports.</p>
+
+      <div class="arch-diagram">
+        <!-- Layer 1: Clients -->
+        <div class="arch-layer">
+          <div class="arch-layer-label">Presentation Layer — Users & Partners</div>
+          <div class="arch-row">
+            <div class="arch-box client">
+              <div class="title">RCM Ops Console</div>
+              <div class="tech">React 18 + TypeScript + Vite</div>
+              <div class="path">src/platform-web/</div>
+            </div>
+            <div class="arch-box client">
+              <div class="title">Partner Integrations</div>
+              <div class="tech">REST consumers via DA API</div>
+              <div class="path">X-Api-Key header</div>
+            </div>
+            <div class="arch-box client">
+              <div class="title">Clinician Widget</div>
+              <div class="tech">Eligibility status (read-only)</div>
+              <div class="path">Future: embedded view</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="arch-arrow">▼ HTTPS / REST <span>Port 5173 (web) → 5000 (API)</span></div>
+
+        <!-- Layer 2: API -->
+        <div class="arch-layer">
+          <div class="arch-layer-label">API Gateway Layer — DA API v1</div>
+          <div class="arch-row">
+            <div class="arch-box api">
+              <div class="title">Platform API</div>
+              <div class="tech">ASP.NET Core 8</div>
+              <div class="path">src/platform-api/</div>
+            </div>
+            <div class="arch-box api" style="max-width:160px">
+              <div class="title">API Key Auth</div>
+              <div class="tech">SHA-256 hashed keys</div>
+            </div>
+            <div class="arch-box api" style="max-width:160px">
+              <div class="title">Rate Limiting</div>
+              <div class="tech">100 req/min per IP</div>
+            </div>
+            <div class="arch-box api" style="max-width:160px">
+              <div class="title">Usage Logging</div>
+              <div class="tech">api_usage_logs table</div>
+            </div>
+            <div class="arch-box api" style="max-width:160px">
+              <div class="title">Swagger / OpenAPI</div>
+              <div class="tech">docs/06-api-spec.openapi.yaml</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="arch-arrow">▼ Dependency Injection <span>Controllers → Services</span></div>
+
+        <!-- Layer 3: Engine -->
+        <div class="arch-layer">
+          <div class="arch-layer-label">Domain & Orchestration Layer — RCM Engine</div>
+          <div class="arch-row">
+            <div class="arch-box engine">
+              <div class="title">Eligibility Orchestrator</div>
+              <div class="tech">270/271, benefit snapshots</div>
+              <div class="path">Services/Eligibility/</div>
+            </div>
+            <div class="arch-box engine">
+              <div class="title">Claim Lifecycle</div>
+              <div class="tech">Scrub, submit, track acks</div>
+              <div class="path">Services/Claims/</div>
+            </div>
+            <div class="arch-box engine">
+              <div class="title">ERA / 835 Posting</div>
+              <div class="tech">Match engine, auto-post</div>
+              <div class="path">Services/Posting/</div>
+            </div>
+            <div class="arch-box engine">
+              <div class="title">Rules Engine</div>
+              <div class="tech">CDT, tooth, required fields</div>
+              <div class="path">Services/Rules/</div>
+            </div>
+            <div class="arch-box engine">
+              <div class="title">Work Item Service</div>
+              <div class="tech">Exception & denial queues</div>
+              <div class="path">Services/WorkItems/</div>
+            </div>
+            <div class="arch-box engine">
+              <div class="title">EDI 835 Parser</div>
+              <div class="tech">JSON + X12-lite</div>
+              <div class="path">Services/Edi/</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="arch-arrow">▼ Adapter Ports (Interfaces) <span>src/rcm-engine/Ports/IntegrationPorts.cs</span></div>
+
+        <!-- Layer 4: Integrations -->
+        <div class="arch-layer">
+          <div class="arch-layer-label">Integration Layer — Swappable Adapters (MVP: Mock)</div>
+          <div class="arch-row">
+            <div class="arch-box integration">
+              <div class="title">DentalBridge Client</div>
+              <div class="tech">IDentalBridgeClient</div>
+              <div class="path">integrations/DentalBridge/</div>
+            </div>
+            <div class="arch-box integration">
+              <div class="title">Clearinghouse Port</div>
+              <div class="tech">IClearinghousePort</div>
+              <div class="path">integrations/Clearinghouse/</div>
+            </div>
+            <div class="arch-box integration">
+              <div class="title">PMS Write-Back</div>
+              <div class="tech">IPmsWriteBackPort</div>
+              <div class="path">/rcm/patientpaymentswriteback</div>
+            </div>
+            <div class="arch-box integration">
+              <div class="title">AI Worker Client</div>
+              <div class="tech">IAiWorkerClient</div>
+              <div class="path">integrations/Ai/</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="arch-arrow">▼ External Systems <span>MVP uses mocks; production swaps adapters</span></div>
+
+        <!-- Layer 5: External -->
+        <div class="arch-layer">
+          <div class="arch-layer-label">External Systems</div>
+          <div class="arch-row">
+            <div class="arch-box external">
+              <div class="title">PMS</div>
+              <div class="tech">Dentrix, Open Dental, Eaglesoft</div>
+            </div>
+            <div class="arch-box external">
+              <div class="title">Clearinghouse</div>
+              <div class="tech">Stedi, DentalXChange, Vyne</div>
+            </div>
+            <div class="arch-box external">
+              <div class="title">Payers</div>
+              <div class="tech">270/271, 837D, 835, 276/277</div>
+            </div>
+            <div class="arch-box external">
+              <div class="title">Python AI Worker</div>
+              <div class="tech">FastAPI — port 8000</div>
+              <div class="path">src/ai-workers/</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="arch-arrow">▼ Persistence</div>
+
+        <!-- Layer 6: Data -->
+        <div class="arch-layer">
+          <div class="arch-layer-label">Data & Infrastructure Layer</div>
+          <div class="arch-row">
+            <div class="arch-box data">
+              <div class="title">Azure SQL</div>
+              <div class="tech">EF Core — workflow state</div>
+              <div class="path">rcm-engine/Data/RcmDbContext.cs</div>
+            </div>
+            <div class="arch-box data">
+              <div class="title">Redis</div>
+              <div class="tech">Cache, idempotency (configured)</div>
+            </div>
+            <div class="arch-box data">
+              <div class="title">Blob Storage</div>
+              <div class="tech">EOB PDFs, raw 835 (future)</div>
+            </div>
+            <div class="arch-box data">
+              <div class="title">Audit Log</div>
+              <div class="tech">Append-only audit_events</div>
+            </div>
+            <div class="arch-box data">
+              <div class="title">App Insights</div>
+              <div class="tech">Serilog + OpenTelemetry</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <h3>Background Processing</h3>
+      <p>
+        <code>WorkflowBackgroundService</code> runs every 30 seconds inside the API process:
+        processes pending eligibility checks and polls clearinghouse for 999/277CA acknowledgments.
+        Future: Azure Service Bus for scale-out workers.
+      </p>
+    </section>
+
+    <!-- LIFECYCLE -->
+    <section id="lifecycle">
+      <h2>5. End-to-End RCM Lifecycle</h2>
+      <p>Every stage maps to a service, database entities, and API endpoints. This is the closed revenue loop the platform automates.</p>
+
+      <div class="flow">
+        <div class="flow-step highlight">Appointment<br><small>Scheduled</small></div>
+        <span class="flow-arrow">→</span>
+        <div class="flow-step highlight">Eligibility<br><small>270/271</small></div>
+        <span class="flow-arrow">→</span>
+        <div class="flow-step">Benefit<br><small>Snapshot</small></div>
+        <span class="flow-arrow">→</span>
+        <div class="flow-step">Claim<br><small>Built</small></div>
+        <span class="flow-arrow">→</span>
+        <div class="flow-step">Scrub<br><small>Rules</small></div>
+        <span class="flow-arrow">→</span>
+        <div class="flow-step highlight">Submit<br><small>837D</small></div>
+        <span class="flow-arrow">→</span>
+        <div class="flow-step">Ack<br><small>999/277CA</small></div>
+        <span class="flow-arrow">→</span>
+        <div class="flow-step highlight">ERA<br><small>835</small></div>
+        <span class="flow-arrow">→</span>
+        <div class="flow-step">Match<br><small>Confidence</small></div>
+        <span class="flow-arrow">→</span>
+        <div class="flow-step highlight">Post<br><small>PMS Write-Back</small></div>
+        <span class="flow-arrow">→</span>
+        <div class="flow-step human">Denial?<br><small>Work Queue</small></div>
+      </div>
+
+      <table>
+        <thead>
+          <tr><th>Stage</th><th>EDI / Artifact</th><th>Service</th><th>Key Entity</th><th>Automation Level</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Eligibility</td><td>270/271</td><td>EligibilityOrchestrator</td><td>EligibilityCheck, BenefitSnapshot</td><td>Auto (271 ≥95% confidence)</td></tr>
+          <tr><td>Claim scrub</td><td>Internal</td><td>ClaimScrubService</td><td>Claim, ClaimLine</td><td>Deterministic rules</td></tr>
+          <tr><td>Submit</td><td>837D</td><td>ClaimSubmissionService</td><td>ClaimSubmission</td><td>Auto via clearinghouse</td></tr>
+          <tr><td>Acknowledge</td><td>999, 277CA</td><td>AckMonitoringService</td><td>AckEvent</td><td>Auto poll + alert on reject</td></tr>
+          <tr><td>Remittance</td><td>835 ERA</td><td>RemittanceService</td><td>Remittance, RemittanceLine</td><td>Auto poll or file upload</td></tr>
+          <tr><td>Match & Post</td><td>835 + PMS</td><td>PaymentMatchEngine, PostingService</td><td>PostingAttempt</td><td>Auto if ≥95%; else HITL</td></tr>
+          <tr><td>Denials</td><td>CARC/RARC</td><td>WorkItemService + AI</td><td>WorkItem</td><td>AI triage; human resolves</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- COMPONENTS -->
+    <section id="components">
+      <h2>6. Component Breakdown — Repository Map</h2>
+      <table>
+        <thead>
+          <tr><th>Project</th><th>Path</th><th>Stack</th><th>Key Files</th><th>Responsibility</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>platform-api</strong></td>
+            <td><code>src/platform-api/</code></td>
+            <td>.NET 8 Web API</td>
+            <td>Program.cs, Controllers/*, Auth/, Middleware/, Background/</td>
+            <td>HTTP surface, auth, rate limits, Swagger, hosts background service</td>
+          </tr>
+          <tr>
+            <td><strong>rcm-engine</strong></td>
+            <td><code>src/rcm-engine/</code></td>
+            <td>.NET 8 Class Library</td>
+            <td>Domain/Entities/*, Data/RcmDbContext.cs, Services/*, Ports/</td>
+            <td>All business logic, EF Core schema, orchestration, EDI parsing</td>
+          </tr>
+          <tr>
+            <td><strong>integrations</strong></td>
+            <td><code>src/integrations/</code></td>
+            <td>.NET 8 Class Library</td>
+            <td>DentalBridge/, Clearinghouse/, Ai/, ServiceCollectionExtensions.cs</td>
+            <td>Mock adapters today; Stedi/DentalBridge live adapters tomorrow</td>
+          </tr>
+          <tr>
+            <td><strong>platform-web</strong></td>
+            <td><code>src/platform-web/</code></td>
+            <td>React 18 + TypeScript</td>
+            <td>src/pages/*, src/api/client.ts, App.tsx</td>
+            <td>RCM ops console: dashboard, eligibility, claims, remittances, work queue</td>
+          </tr>
+          <tr>
+            <td><strong>ai-workers</strong></td>
+            <td><code>src/ai-workers/</code></td>
+            <td>Python 3.12 + FastAPI</td>
+            <td>workers/main.py</td>
+            <td>EOB PDF extraction, denial summarization</td>
+          </tr>
+          <tr>
+            <td><strong>tests</strong></td>
+            <td><code>src/tests/</code></td>
+            <td>xUnit + pytest</td>
+            <td>RcmEngine.Tests/, ai-workers/tests/</td>
+            <td>Scrub rules, 835 parser, AI worker endpoints</td>
+          </tr>
+          <tr>
+            <td><strong>infra</strong></td>
+            <td><code>infra/bicep/</code></td>
+            <td>Azure Bicep</td>
+            <td>main.bicep</td>
+            <td>App Service, Azure SQL, Storage, App Insights</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>Multi-Tenant Hierarchy</h3>
+      <div class="flow">
+        <div class="flow-step highlight">Organization<br><small>DSO / Practice Group</small></div>
+        <span class="flow-arrow">→</span>
+        <div class="flow-step">Region<br><small>Optional</small></div>
+        <span class="flow-arrow">→</span>
+        <div class="flow-step highlight">Location<br><small>Clinic / Office</small></div>
+        <span class="flow-arrow">→</span>
+        <div class="flow-step">Provider<br><small>NPI, name</small></div>
+      </div>
+      <p>Every entity carries <code>OrganizationId</code>. All API queries are tenant-scoped. Roles: OrgAdmin, PracticeManager, RCMSpecialist, APIPartner, SystemAuditor.</p>
+    </section>
+
+    <!-- WORKFLOWS -->
+    <section id="workflows">
+      <h2>7. Workflow Deep Dives</h2>
+
+      <h3>7.1 Eligibility Orchestration</h3>
+      <div class="card">
+        <div class="flow">
+          <div class="flow-step">Trigger<br><small>POST /v1/eligibility/check</small></div>
+          <span class="flow-arrow">→</span>
+          <div class="flow-step">Build 270<br><small>patient + coverage + NPI</small></div>
+          <span class="flow-arrow">→</span>
+          <div class="flow-step highlight">Mock 271<br><small>IClearinghousePort</small></div>
+          <span class="flow-arrow">→</span>
+          <div class="flow-step">Confidence ≥ 0.95?<br><small>Verified gate</small></div>
+          <span class="flow-arrow">→</span>
+          <div class="flow-step">BenefitSnapshot<br><small>7-day TTL</small></div>
+          <span class="flow-arrow">→</span>
+          <div class="flow-step highlight">PMS Write-Back<br><small>eligibility status</small></div>
+        </div>
+        <p><strong>Key rule:</strong> Only 271 responses with confidence ≥ 0.95 get "Verified" status. Portal/AI fallback never auto-verifies — routes to NeedsReview work queue.</p>
+      </div>
+
+      <h3>7.2 Claim Lifecycle</h3>
+      <div class="card">
+        <div class="flow">
+          <div class="flow-step">Ingest<br><small>POST /v1/claims/ingest</small></div>
+          <span class="flow-arrow">→</span>
+          <div class="flow-step">DentalBridge<br><small>claim-procedures API</small></div>
+          <span class="flow-arrow">→</span>
+          <div class="flow-step">Rules Scrub<br><small>CDT, tooth, amounts</small></div>
+          <span class="flow-arrow">→</span>
+          <div class="flow-step highlight">Submit 837D<br><small>POST /claims/{id}/submit</small></div>
+          <span class="flow-arrow">→</span>
+          <div class="flow-step">999/277CA<br><small>AckMonitoringService</small></div>
+          <span class="flow-arrow">→</span>
+          <div class="flow-step human">Reject?<br><small>WorkItem created</small></div>
+        </div>
+        <p><strong>Scrub rules:</strong> Valid CDT format (D####), tooth required for D2/D3/D4 codes, positive amounts, payer ID required. Failures → ScrubFailed status with JSON error list.</p>
+      </div>
+
+      <h3>7.3 ERA / 835 Payment Posting (Money Path)</h3>
+      <div class="card">
+        <div class="flow">
+          <div class="flow-step highlight">Poll 835<br><small>POST /v1/remittances/poll</small></div>
+          <span class="flow-arrow">→</span>
+          <div class="flow-step">Parse<br><small>JSON or X12-lite</small></div>
+          <span class="flow-arrow">→</span>
+          <div class="flow-step">Match Engine<br><small>claim + CDT + amount</small></div>
+          <span class="flow-arrow">→</span>
+          <div class="flow-step">≥ 0.95?<br><small>Auto-post</small></div>
+          <span class="flow-arrow">→</span>
+          <div class="flow-step highlight">PMS Write-Back<br><small>/rcm/patientpaymentswriteback</small></div>
+          <span class="flow-arrow">→</span>
+          <div class="flow-step human">&lt; 0.95?<br><small>Exception queue</small></div>
+        </div>
+        <p><strong>Idempotency:</strong> Every posting attempt uses key <code>post-{lineId}</code>. Duplicate posts are prevented. <code>posting_attempts</code> table is the audit trail.</p>
+        <p><strong>Denial detection:</strong> Lines with CARC codes and $0 paid automatically create Denial work items.</p>
+      </div>
+
+      <h3>7.4 Denial & Exception Workbench</h3>
+      <div class="card">
+        <div class="flow">
+          <div class="flow-step human">Work Item<br><small>Open queue</small></div>
+          <span class="flow-arrow">→</span>
+          <div class="flow-step ai">AI Summary<br><small>POST /work-items/{id}/ai-summary</small></div>
+          <span class="flow-arrow">→</span>
+          <div class="flow-step">CARC Routing<br><small>CO-45, CO-97, OA-23</small></div>
+          <span class="flow-arrow">→</span>
+          <div class="flow-step human">RCM Review<br><small>Assign, resolve</small></div>
+        </div>
+        <p>Work item types: EligibilityReview, ScrubFailure, AckRejection, PostingException, Denial, Underpayment. Priority auto-set by CARC code severity.</p>
+      </div>
+    </section>
+
+    <!-- DATA -->
+    <section id="data">
+      <h2>8. Data Model — 20 Core Tables</h2>
+      <div class="entity-grid">
+        <div class="entity"><strong>organizations</strong>Tenant root, slug</div>
+        <div class="entity"><strong>locations</strong>Clinics, PMS type, external ID</div>
+        <div class="entity"><strong>providers</strong>NPI, name, location</div>
+        <div class="entity"><strong>patients</strong>External PMS ID, DOB, member ID</div>
+        <div class="entity"><strong>coverages</strong>Payer, member ID, order</div>
+        <div class="entity"><strong>eligibility_checks</strong>Status, confidence, source</div>
+        <div class="entity"><strong>benefit_snapshots</strong>Max, deductible, 271 JSON</div>
+        <div class="entity"><strong>claims</strong>Status, payer, DOS, amounts</div>
+        <div class="entity"><strong>claim_lines</strong>CDT, tooth, charge</div>
+        <div class="entity"><strong>claim_submissions</strong>837D reference, payload</div>
+        <div class="entity"><strong>claim_status_events</strong>Immutable timeline</div>
+        <div class="entity"><strong>ack_events</strong>999/277CA log</div>
+        <div class="entity"><strong>remittances</strong>ERA header, trace number</div>
+        <div class="entity"><strong>remittance_lines</strong>Match confidence, CARC</div>
+        <div class="entity"><strong>posting_attempts</strong>Idempotency key, PMS ref</div>
+        <div class="entity"><strong>work_items</strong>Exception queue, AI summary</div>
+        <div class="entity"><strong>integration_jobs</strong>Async queue, DLQ</div>
+        <div class="entity"><strong>audit_events</strong>PHI access log</div>
+        <div class="entity"><strong>api_keys</strong>Partner keys (hashed)</div>
+        <div class="entity"><strong>api_usage_logs</strong>Rate limit metering</div>
+      </div>
+      <p><strong>Data ownership:</strong> PMS remains ledger of record. Platform owns workflow state, provenance, and audit trail. Implemented in <code>RcmDbContext</code> with EF Core <code>EnsureCreated</code> (migrations for production).</p>
+    </section>
+
+    <!-- API -->
+    <section id="api">
+      <h2>9. DA API v1 — Endpoint Catalog</h2>
+      <p>Partner-facing REST API. Auth: <code>X-Api-Key</code> header. Versioning: <code>/v1/</code> prefix. Demo key: <code>da-demo-key-change-in-production</code></p>
+      <table>
+        <thead>
+          <tr><th>Method</th><th>Endpoint</th><th>Purpose</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>GET</td><td><code>/v1/health</code></td><td>Platform health (no auth)</td></tr>
+          <tr><td>POST</td><td><code>/v1/eligibility/check</code></td><td>Trigger 270/271 eligibility job</td></tr>
+          <tr><td>GET</td><td><code>/v1/eligibility</code></td><td>List eligibility checks</td></tr>
+          <tr><td>GET</td><td><code>/v1/eligibility/{id}</code></td><td>Check detail + benefit snapshot</td></tr>
+          <tr><td>GET</td><td><code>/v1/claims</code></td><td>List claims (filter by status)</td></tr>
+          <tr><td>POST</td><td><code>/v1/claims/ingest</code></td><td>Ingest from DentalBridge</td></tr>
+          <tr><td>POST</td><td><code>/v1/claims/{id}/submit</code></td><td>Scrub + submit 837D</td></tr>
+          <tr><td>GET</td><td><code>/v1/remittances</code></td><td>List ERA remittances</td></tr>
+          <tr><td>POST</td><td><code>/v1/remittances/poll</code></td><td>Poll clearinghouse for 835</td></tr>
+          <tr><td>POST</td><td><code>/v1/remittances/upload-835</code></td><td>Upload raw 835 file</td></tr>
+          <tr><td>POST</td><td><code>/v1/remittances/{id}/post</code></td><td>Auto-post matched lines</td></tr>
+          <tr><td>POST</td><td><code>/v1/remittances/lines/{id}/post</code></td><td>Post single line (force option)</td></tr>
+          <tr><td>GET</td><td><code>/v1/work-items</code></td><td>Exception/denial queue</td></tr>
+          <tr><td>PATCH</td><td><code>/v1/work-items/{id}</code></td><td>Assign, resolve, escalate</td></tr>
+          <tr><td>POST</td><td><code>/v1/work-items/{id}/ai-summary</code></td><td>AI denial analysis</td></tr>
+          <tr><td>GET</td><td><code>/v1/locations</code></td><td>List organization locations</td></tr>
+          <tr><td>GET</td><td><code>/v1/locations/{id}/kpis</code></td><td>Denial rate, eligibility %, AR metrics</td></tr>
+          <tr><td>GET</td><td><code>/v1/patients</code></td><td>List patients by location</td></tr>
+        </tbody>
+      </table>
+      <p>Full OpenAPI spec: <code>docs/06-api-spec.openapi.yaml</code> · Swagger UI: <code>http://localhost:5000/swagger</code></p>
+    </section>
+
+    <!-- INTEGRATIONS -->
+    <section id="integrations">
+      <h2>10. Integration Architecture — Adapter Ports</h2>
+      <p>Four interfaces in <code>src/rcm-engine/Ports/IntegrationPorts.cs</code>. MVP ships mock implementations; production swaps without touching domain code.</p>
+
+      <table>
+        <thead>
+          <tr><th>Port Interface</th><th>MVP (Mock)</th><th>Production Target</th><th>Methods</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>IDentalBridgeClient</code></td>
+            <td>MockDentalBridgeClient</td>
+            <td>DA DentalBridge REST API</td>
+            <td>GetAppointments, GetCoverage, GetClaimProcedures</td>
+          </tr>
+          <tr>
+            <td><code>IClearinghousePort</code></td>
+            <td>MockClearinghousePort</td>
+            <td>Stedi JSON API (primary)</td>
+            <td>CheckEligibility (271), Submit837D, PollRemits (835), PollAcks (999/277CA)</td>
+          </tr>
+          <tr>
+            <td><code>IPmsWriteBackPort</code></td>
+            <td>MockPmsWriteBackPort</td>
+            <td>DA <code>/rcm/patientpaymentswriteback</code></td>
+            <td>WritePayment, WriteEligibility</td>
+          </tr>
+          <tr>
+            <td><code>IAiWorkerClient</code></td>
+            <td>MockAiWorkerClient (fallback)</td>
+            <td>Python FastAPI worker (port 8000)</td>
+            <td>ExtractEob, SummarizeDenial</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="callout amber">
+        <strong>Swap strategy:</strong> Change one line in <code>integrations/ServiceCollectionExtensions.cs</code>:
+        <code>AddMockIntegrations()</code> → <code>AddHttpIntegrations()</code> + live adapter classes.
+        Dual-clearinghouse failover (Stedi + DentalXChange) planned for Phase 3.
+      </div>
+
+      <h3>EDI Standards Supported</h3>
+      <table>
+        <thead><tr><th>Transaction</th><th>Purpose</th><th>MVP Status</th></tr></thead>
+        <tbody>
+          <tr><td>270/271</td><td>Eligibility inquiry/response</td><td>Mock + structured 271 JSON storage</td></tr>
+          <tr><td>837D</td><td>Dental claim submission</td><td>Mock submit + payload logging</td></tr>
+          <tr><td>835</td><td>ERA remittance</td><td>JSON + X12-lite parser implemented</td></tr>
+          <tr><td>999 / 277CA</td><td>Acknowledgments</td><td>Poll + reject → work item</td></tr>
+          <tr><td>276/277</td><td>Claim status</td><td>Interface defined; Phase 2</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- AI -->
+    <section id="ai">
+      <h2>11. AI Architecture — Rules for Money, AI for Variation</h2>
+      <div class="compare">
+        <div class="card">
+          <h4>Deterministic (Rules Engine)</h4>
+          <ul>
+            <li>X12 request formatting</li>
+            <li>CDT / tooth / required-field validation</li>
+            <li>ERA line matching with amount tolerance</li>
+            <li>Auto-post gate (confidence ≥ 0.95)</li>
+            <li>CARC → work queue routing</li>
+            <li>Idempotent payment write-back</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h4>AI-Assisted (Python Worker)</h4>
+          <ul>
+            <li>EOB PDF / text extraction → structured lines</li>
+            <li>Denial summarization (CARC + context)</li>
+            <li>Suggested next action per denial type</li>
+            <li>Work queue priority scoring</li>
+            <li>Benefit summary for clinicians (future)</li>
+          </ul>
+        </div>
+      </div>
+
+      <h3>Human-in-the-Loop Thresholds</h3>
+      <table>
+        <thead><tr><th>Operation</th><th>Auto Threshold</th><th>Below Threshold</th></tr></thead>
+        <tbody>
+          <tr><td>ERA line match + post</td><td>≥ 0.95 confidence</td><td>Exception work queue</td></tr>
+          <tr><td>EOB field extraction</td><td>≥ 0.90 per field</td><td>Manual review</td></tr>
+          <tr><td>Eligibility "Verified"</td><td>271 only, ≥ 0.95</td><td>NeedsReview — never auto-verify</td></tr>
+          <tr><td>Denial recommendations</td><td>Never auto</td><td>Human must approve before resubmit</td></tr>
+        </tbody>
+      </table>
+
+      <p>AI worker endpoints: <code>POST /extract/eob</code>, <code>POST /summarize/denial</code>, <code>GET /health</code>.
+      Falls back to MockAiWorkerClient if worker is unavailable — platform stays operational.</p>
+    </section>
+
+    <!-- SECURITY -->
+    <section id="security">
+      <h2>12. Security & HIPAA Baseline</h2>
+      <div class="card-grid">
+        <div class="card"><h4>Authentication</h4><p>API keys (SHA-256 hashed in DB). Entra ID for staff UI (Phase 2). Demo key for development only.</p></div>
+        <div class="card"><h4>Tenant Isolation</h4><p>Every query scoped by <code>OrganizationId</code>. No cross-tenant data access possible at ORM layer.</p></div>
+        <div class="card"><h4>Audit Trail</h4><p>Append-only <code>audit_events</code> — who accessed what PHI entity, when, from where.</p></div>
+        <div class="card"><h4>Encryption</h4><p>TLS 1.2+ in transit. Azure SQL TDE + Blob SSE at rest. Key Vault for secrets in production.</p></div>
+        <div class="card"><h4>Rate Limiting</h4><p>100 requests/minute per IP on <code>/v1/*</code>. Returns HTTP 429 when exceeded.</p></div>
+        <div class="card"><h4>AI PHI Governance</h4><p>No training on tenant data. Inference logged with correlation ID. BAA required with AI provider.</p></div>
+      </div>
+      <p>Platform is designed as a HIPAA Business Associate. BAA with each practice required before production PHI flows. SOC 2 Type II targeted post-MVP.</p>
+    </section>
+
+    <!-- OBSERVABILITY -->
+    <section id="observability">
+      <h2>13. Observability</h2>
+      <table>
+        <thead><tr><th>Capability</th><th>Implementation</th><th>What It Catches</th></tr></thead>
+        <tbody>
+          <tr><td>Structured Logging</td><td>Serilog → console / App Insights</td><td>Job failures, posting errors, adapter timeouts</td></tr>
+          <tr><td>Distributed Tracing</td><td>OpenTelemetry ASP.NET instrumentation</td><td>Request latency across API → worker → AI</td></tr>
+          <tr><td>Health Endpoint</td><td><code>GET /v1/health</code></td><td>Database connectivity, version</td></tr>
+          <tr><td>API Usage Logs</td><td><code>api_usage_logs</code> per request</td><td>Partner SLA tracking, abuse detection</td></tr>
+          <tr><td>Correlation IDs</td><td><code>X-Correlation-Id</code> middleware</td><td>End-to-end request tracing</td></tr>
+          <tr><td>Background Jobs</td><td><code>integration_jobs</code> + DeadLetter status</td><td>Silent ack failures, stuck workflows</td></tr>
+          <tr><td>KPI Dashboard</td><td><code>GET /v1/locations/{id}/kpis</code></td><td>Denial rate, eligibility %, remittance count</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- DEPLOYMENT -->
+    <section id="deployment">
+      <h2>14. Deployment Topology</h2>
+      <div class="arch-diagram">
+        <div class="arch-layer">
+          <div class="arch-layer-label">Local Development — docker-compose.yml</div>
+          <div class="arch-row">
+            <div class="arch-box data"><div class="title">SQL Server</div><div class="tech">:1433</div></div>
+            <div class="arch-box data"><div class="title">Redis</div><div class="tech">:6379</div></div>
+            <div class="arch-box data"><div class="title">Azurite</div><div class="tech">Blob emulator</div></div>
+            <div class="arch-box api"><div class="title">API</div><div class="tech">:5000</div></div>
+            <div class="arch-box external"><div class="title">AI Worker</div><div class="tech">:8000</div></div>
+            <div class="arch-box client"><div class="title">Web UI</div><div class="tech">:5173</div></div>
+          </div>
+        </div>
+        <div class="arch-arrow">▼ Production — infra/bicep/main.bicep</div>
+        <div class="arch-layer">
+          <div class="arch-layer-label">Azure Production</div>
+          <div class="arch-row">
+            <div class="arch-box api"><div class="title">App Service</div><div class="tech">API (.NET 8)</div></div>
+            <div class="arch-box data"><div class="title">Azure SQL</div><div class="tech">S0 → HA</div></div>
+            <div class="arch-box data"><div class="title">Blob Storage</div><div class="tech">EOB documents</div></div>
+            <div class="arch-box data"><div class="title">App Insights</div><div class="tech">Metrics + alerts</div></div>
+            <div class="arch-box external"><div class="title">Container Apps</div><div class="tech">Python AI worker</div></div>
+          </div>
+        </div>
+      </div>
+      <p>CI/CD: GitHub Actions (<code>.github/workflows/ci.yml</code>) — dotnet test, pytest, npm build, Docker image build on every push.</p>
+    </section>
+
+    <!-- DEMO -->
+    <section id="demo">
+      <h2>15. Live Demo Walkthrough (5 Minutes)</h2>
+      <div class="card">
+        <ol>
+          <li><strong>Start platform:</strong> <code>docker compose up -d</code> or run API + AI worker + web UI locally</li>
+          <li><strong>Dashboard</strong> (<code>localhost:5173</code>) — show health, KPIs, demo org "Demo Dental Group"</li>
+          <li><strong>Eligibility</strong> — select patient Sarah Johnson → Run Eligibility Check → Verified with benefit snapshot (max remaining $875)</li>
+          <li><strong>Claims</strong> — Ingest from PMS (DentalBridge mock) → Submit claim → watch status move to Submitted → AckAccepted</li>
+          <li><strong>Remittances</strong> — Poll Clearinghouse → ERA ingested with 3 lines → Auto-Post → mock PMS write-back logged</li>
+          <li><strong>Work Queue</strong> — if denial/exception exists → Generate AI Summary → show suggested action → Resolve</li>
+          <li><strong>API</strong> — show Swagger at <code>localhost:5000/swagger</code> with <code>X-Api-Key</code> auth</li>
+        </ol>
+      </div>
+      <div class="callout green">
+        <strong>Talking point for founder:</strong> "We didn't rebuild PMS connectivity — we built the workflow brain on top of DentalBridge.
+        Mock adapters prove the full money path today. When Stedi sandbox credentials are ready, we swap one DI registration — no domain rewrite."
+      </div>
+    </section>
+
+    <!-- ROADMAP -->
+    <section id="roadmap">
+      <h2>16. Roadmap — MVP → Production → DSO Scale</h2>
+      <table>
+        <thead><tr><th>Phase</th><th>Timeline</th><th>Deliverables</th><th>Status</th></tr></thead>
+        <tbody>
+          <tr><td><strong>MVP (Sprints 0–5)</strong></td><td>Weeks 1–12</td><td>Full monorepo, mock integrations, ops console, DA API v1, docs, CI</td><td style="color:var(--green)">✓ Complete</td></tr>
+          <tr><td><strong>Phase 2 — Live Integrations</strong></td><td>Weeks 13–20</td><td>Stedi sandbox, DentalBridge production, NEA attachments, 276/277 status polling</td><td>Planned</td></tr>
+          <tr><td><strong>Phase 3 — DSO Scale</strong></td><td>Weeks 21–30</td><td>Dual CH failover, portfolio denial analytics, underpayment detection, SOC 2</td><td>Planned</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- DECISIONS -->
+    <section id="decisions">
+      <h2>17. Architecture Decision Records</h2>
+      <table>
+        <thead><tr><th>Decision</th><th>Choice</th><th>Why Not Alternatives</th></tr></thead>
+        <tbody>
+          <tr><td>Architecture style</td><td>Modular monolith + workers</td><td>Microservices: too much overhead for small team. Pure monolith: can't scale AI/EDI independently.</td></tr>
+          <tr><td>PMS integration</td><td>DentalBridge read + DA write-back</td><td>Building per-PMS adapters: 6–12 months. DA already has this moat.</td></tr>
+          <tr><td>Clearinghouse</td><td>Stedi-shaped port (mock first)</td><td>Direct payer: impossible at scale. DentalXChange only: single point of failure.</td></tr>
+          <tr><td>Database</td><td>Azure SQL + EF Core</td><td>Cosmos: wrong consistency model for money path. Postgres: team .NET/SQL expertise.</td></tr>
+          <tr><td>AI runtime</td><td>Python sidecar</td><td>All in .NET: weak PDF/ML ecosystem. External SaaS only: PHI governance risk.</td></tr>
+          <tr><td>Auto-posting gate</td><td>Confidence ≥ 0.95</td><td>Auto-post everything: trust risk. Manual everything: no automation value.</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <footer style="margin-top:3rem;padding-top:1.5rem;border-top:1px solid var(--border);color:var(--muted);font-size:0.82rem;">
+      <p>Dentistry Automation Platform MVP · Architecture Presentation · Generated for founder call</p>
+      <p>Repository: <code>E:\Projects\Dentistry Automation Platform</code> · Docs: <code>docs/</code> · API Spec: <code>docs/06-api-spec.openapi.yaml</code></p>
+    </footer>
+  </main>
+</div>
+</body>
+</html>
